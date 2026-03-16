@@ -1,0 +1,243 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background:
+    linear-gradient(rgba(255,255,255,0.75),
+                    rgba(255,255,255,0.75)),
+    url("https://i.pinimg.com/736x/f4/3e/d8/f43ed8b568d1c6501abb674397b8da67.jpg");
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+}
+
+/* Banner image */
+body > img {
+  width: 100%;
+  max-height: 550px;
+  object-fit: cover;
+  margin-top: 10px;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  backdrop-filter: blur(6px);
+}
+
+.navbar ul {
+  display: flex;
+  list-style: none;
+  gap: 20px;
+}
+
+.navbar li {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.logo {
+  font-family: "Bodoni MT Black", serif;
+  font-size: 26px;
+}
+
+/* Headings */
+h1 {
+  font-family: "Bodoni MT Black", serif;
+  font-size: 50px;
+}
+
+h3 {
+  font-family: Cambria, serif;
+}
+
+/* NAV LINKS */
+.navbar a {
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+}
+
+.navbar a:hover {
+  color: brown;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* PRODUCT SLIDER */
+.product-container {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px 0;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.product-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* PRODUCT CARD */
+.card {
+  flex: 0 0 20%;
+  max-width: 20%;
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+/* IMAGE CONTAINER */
+.img-box {
+  position: relative;
+  overflow: visible;
+}
+
+/* IMAGE */
+.img-box img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  transition: transform 0.4s ease;
+  position: relative;
+  z-index: 2;
+}
+
+/* ZOOM OUTSIDE CARD */
+.img-box:hover img {
+  transform: scale(1.08);
+}
+
+/* STAR GLOW BACKGROUND */
+.img-box::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  right: -12px;
+  bottom: -12px;
+  background: url("images/stars.png") center/cover no-repeat;
+  opacity: 0;
+  filter: brightness(1.5) drop-shadow(0 0 8px silver);
+  border-radius: 18px;
+  transition: 0.4s ease;
+  z-index: 1;
+}
+
+/* SHOW STARS ON HOVER */
+.img-box:hover::after {
+  opacity: 0.75;
+}
+
+/* DESCRIPTION */
+.description {
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* PRICE */
+.old {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.new {
+  color: brown;
+  font-weight: bold;
+}
+
+/* FOOTER */
+footer {
+  padding: 20px;
+  margin-top: 40px;
+}
+
+.side-menu a{
+  display:block;
+  padding:8px;
+  text-decoration:none;
+  color:black;
+}
+
+.side-menu a:hover{
+  background:#f3f3f3;
+}
+
+/* Sidebar links */
+
+.side-menu a{
+display:block;
+padding:8px;
+text-decoration:none;
+color:black;
+font-weight:bold;
+}
+
+.side-menu a:hover{
+background:#f2f2f2;
+color:brown;
+}
+
+.sale-badge{
+position:absolute;
+top:10px;
+left:10px;
+background:brown;
+color:white;
+padding:5px 10px;
+font-size:12px;
+border-radius:5px;
+font-weight:bold;
+}
+
+.sale-tag{
+position:absolute;
+top:8px;
+left:8px;
+background:brown;
+color:white;
+padding:3px 7px;
+font-size:10px;
+font-weight:bold;
+border-radius:4px;
+z-index:10;
+}
+
+.card{
+position:relative;
+}
+
+.sale-tag{
+background:brown;
+color:white;
+}
+
+a{
+text-decoration:none;
+color:black;
+}
+
+
+.card a{
+  text-decoration:none;
+  color:black;
+  display:block;
+}
+
+.card:hover{
+  cursor:pointer;
+}
