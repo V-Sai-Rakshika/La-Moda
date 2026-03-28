@@ -1,10 +1,10 @@
-FROM php:8.1-cli
+FROM php:8.2-cli
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     unzip git curl libssl-dev pkg-config
 
-# Install MongoDB extension
+# Install latest MongoDB extension
 RUN pecl install mongodb \
     && docker-php-ext-enable mongodb
 
@@ -15,7 +15,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN composer install --ignore-platform-req=ext-mongodb
+# Install dependencies (ignore platform mismatch during build)
+RUN composer install --ignore-platform-reqs
 
 EXPOSE 10000
 
