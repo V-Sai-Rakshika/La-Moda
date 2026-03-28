@@ -1,112 +1,117 @@
-<?php include "db.php"; ?>
+<?php
+session_start();
+include __DIR__ . "/db.php";
+include __DIR__ . "/auth.php";
 
+$search   = clean($_GET['search'] ?? '', 200);
+$wishlist = $_SESSION['wishlist'] ?? [];
+
+if (isset($_GET['delete'])) {
+    $del = clean($_GET['delete'], 200);
+    $_SESSION['search_history'] = array_values(array_filter(
+        $_SESSION['search_history'] ?? [], fn($i) => $i !== $del
+    ));
+}
+if ($search && !in_array($search, $_SESSION['search_history'] ?? [])) {
+    $_SESSION['search_history'][] = $search;
+}
+
+// Recently viewed
+$recentlyViewed = [];
+if (!empty($_SESSION['recently_viewed'])) {
+    $recentlyViewed = iterator_to_array(
+        $products->find(['name' => ['$in' => $_SESSION['recently_viewed']]])
+    );
+}
+?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>La Moda | Flash Sale</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Moda | Fashion Store</title>
 <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
 
-<nav class="navbar">
-<h2 class="logo">La Moda</h2>
-<ul>
-<li><a href="#">Home</a></li>
-<li><a href="traditional.php">Traditional</a></li>
-<li><a href="dresses.php">Dresses</a></li>
-<li><a href="casual.php">Casual</a></li>
-<li><a href="accessories.php">Accessories</a></li>
-<li><a href="#contact">contact</a></li>
-</ul>
-</nav>
+<?php include __DIR__ . "/navbar.php"; ?>
 
-<img src="images/banner.png">
+<!-- Search history bar -->
+<?php if (!empty($_SESSION['search_history'])): ?>
+<div class="search-history-bar" id="searchHistoryBar" style="display:none;">
+    <div class="search-history-inner">
+        <span class="sh-label">Recent:</span>
+        <?php foreach (array_unique(array_reverse($_SESSION['search_history'])) as $item): ?>
+        <a href="index.php?search=<?= urlencode($item) ?>" class="sh-chip"><?= htmlspecialchars($item) ?></a>
+        <a href="index.php?delete=<?= urlencode($item) ?>" class="sh-delete" title="Remove">✕</a>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
 
-<h2>⚡ Today's Flash Deals</h2>
+<img src="images/banner.png" class="banner-img" alt="La Moda Banner">
 
-<div class="product-container">
+<!-- FLASH DEALS -->
+<h2 class="section-title">⚡ Today's Flash Deals</h2>
+<p class="section-subtitle">Limited time offers — grab yours now!</p>
+<div class="scroll-row-wrap">
+<div class="product-scroll">
 <?php
-$sql="SELECT * FROM products WHERE flash_sale='yes'";
-$res=mysqli_query($conn,$sql);
+$cursor = $search
+    ? $products->find(['$or' => [
+        ['name'        => ['$regex' => preg_quote($search,'/'), '$options'=>'i']],
+        ['description' => ['$regex' => preg_quote($search,'/'), '$options'=>'i']],
+      ]])
+    : $products->find(['flash_sale' => 'yes']);
 
-while($row=mysqli_fetch_assoc($res)){
+$count = 0;
+foreach ($cursor as $row) {
+    $count++;
+    include __DIR__ . "/_product_card.php";
+}
+if ($count === 0) {
+    echo '<p style="padding:20px;color:#999;">No flash deals found.</p>';
+}
 ?>
-
-<div class="card">
-<a href="<?= $row['link'] ?>" target="_blank">
-
-<div class="img-box">
-<img src="images/<?= $row['image'] ?>">
+</div>
 </div>
 
-<h3><?= $row['name'] ?></h3>
-<p class="new">₹<?= $row['new_price'] ?></p>
-
-</a>
-</div>
-
-<?php } ?>
-</div>
-
-<h3>Sale ends in:
-<span id="timer"></span>
-</h3>
-
-<script>
-let end=new Date().getTime()+7200000;
-
-setInterval(()=>{
-let now=new Date().getTime();
-let d=end-now;
-
-let h=Math.floor((d%(1000*60*60*24))/(1000*60*60));
-let m=Math.floor((d%(1000*60*60))/(1000*60));
-let s=Math.floor((d%(1000*60))/1000);
-
-document.getElementById("timer").innerHTML=
-h+"h "+m+"m "+s+"s";
-},1000);
-</script>
-
-<?php
-$categories = ['traditional','dresses','casual','accessories'];
-
-foreach($categories as $cat){
-?>
-<section id="<?= $cat ?>">
-<h2><?= ucfirst($cat) ?> Wear</h2>
-<div class="product-container">
-
-<?php
-$sql = "SELECT * FROM products WHERE category='$cat'";
-$res = mysqli_query($conn,$sql);
-
-while($row=mysqli_fetch_assoc($res)){
-?>
-<div class="card">
-<a href="<?= $row['link'] ?>" target="_blank">
-<div class="img-box">
-  <img src="images/<?= $row['image'] ?>">
-</div>
-</a>
-<h3><?= $row['name'] ?></h3>
-<p class="description"><?= $row['description'] ?></p>
-<p class="old">₹<?= $row['old_price'] ?></p>
-<p class="new">₹<?= $row['new_price'] ?></p>
-</div>
-<?php } ?>
-
-</div>
+<!-- CATEGORY SECTIONS -->
+<?php foreach (['traditional','dresses','casual','accessories'] as $cat): ?>
+<section>
+    <h2 class="section-title"><?= ucfirst($cat) ?> Wear</h2>
+    <div class="scroll-row-wrap">
+    <div class="product-scroll">
+    <?php
+    $catCount = 0;
+    foreach ($products->find(['category' => $cat]) as $row) {
+        $catCount++;
+        include __DIR__ . "/_product_card.php";
+    }
+    if ($catCount === 0) {
+        echo '<p style="padding:20px;color:#999;">No products found.</p>';
+    }
+    ?>
+    </div>
+    </div>
 </section>
-<?php } ?>
+<?php endforeach; ?>
 
-<footer id="contact">
-<h1>☆ La Moda ☆</h1>
-<p>Wear the Moment</p>
-<p>Email: lamoda@email.com</p>
-<p>© 2026 La Moda Flash Sale</p>
+<!-- RECENTLY VIEWED -->
+<?php if (!empty($recentlyViewed)): ?>
+<section>
+    <h2 class="section-title">👁 Recently Viewed</h2>
+    <div class="scroll-row-wrap">
+    <div class="product-scroll">
+    <?php foreach ($recentlyViewed as $row): include __DIR__ . "/_product_card.php"; endforeach; ?>
+    </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<footer>
+    <h1>☆ La Moda ☆</h1>
+    <p>Wear the Moment</p>
 </footer>
 
 </body>

@@ -1,72 +1,31 @@
-<?php include "db.php"; ?>
+<?php
+session_start(); include __DIR__ . "/db.php"; include __DIR__ . "/auth.php";
+$sub = clean($_GET['sub'] ?? '', 100);
+$wishlist = $_SESSION['wishlist'] ?? [];
+$filter = ['category' => 'dresses'];
+if ($sub) $filter['subcategory'] = $sub;
+$cursor = $products->find($filter);
+?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dresses | La Moda</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-<nav class="navbar">
-<h2 class="logo">La Moda</h2>
-<ul>
-<li><a href="index.php">Home</a></li>
-<li><a href="traditional.php">Traditional</a></li>
-<li><a href="dresses.php">Dresses</a></li>
-<li><a href="casual.php">Casual</a></li>
-<li><a href="accessories.php">Accessories</a></li>
-</ul>
-</nav>
-
-<div style="display:flex">
-
-<div class="side-menu" style="width:220px;padding:20px;">
-<h3>Dresses</h3>
-<a href="?sub=midi dresses">Midi Dresses</a>
-<a href="?sub=max dresses">Max Dresses</a>
+<?php include __DIR__ . "/navbar.php"; ?>
+<div class="category-layout">
+    <aside class="side-menu">
+        <h3>Dresses</h3>
+        <a href="dresses.php"             class="<?= !$sub?'active':'' ?>">All</a>
+        <a href="?sub=midi dresses" class="<?= $sub==='midi dresses'?'active':'' ?>">Midi Dresses</a>
+        <a href="?sub=max dresses"  class="<?= $sub==='max dresses' ?'active':'' ?>">Max Dresses</a>
+    </aside>
+    <div class="product-grid">
+        <?php foreach ($cursor as $row): include __DIR__ . "/_product_card.php"; endforeach; ?>
+    </div>
 </div>
-
-<div class="product-container">
-
-<?php
-$sub=$_GET['sub'] ?? '';
-
-$sql=$sub
-? "SELECT * FROM products WHERE category='dresses' AND subcategory='$sub'"
-: "SELECT * FROM products WHERE category='dresses'";
-
-$res=mysqli_query($conn,$sql);
-
-while($row=mysqli_fetch_assoc($res)){
-$discount=round((($row['old_price']-$row['new_price'])/$row['old_price'])*100);
-?>
-
-<div class="card">
-
-<?php if($row['flash_sale']=="yes"){ ?>
-<div class="sale-tag">SALE</div>
-<?php } ?>
-
-<a href="<?= $row['link'] ?>" target="_blank">
-
-<div class="img-box">
-<img src="images/<?= $row['image'] ?>">
-</div>
-
-<h3><?= $row['name'] ?></h3>
-<p><?= $row['description'] ?></p>
-
-<p class="old">₹<?= $row['old_price'] ?></p>
-<p class="new">₹<?= $row['new_price'] ?></p>
-<p style="color:brown"><?= $discount ?>% OFF</p>
-
-</a>
-</div>
-
-<?php } ?>
-
-</div>
-</div>
+<footer><h1>☆ La Moda ☆</h1><p>Wear the Moment</p></footer>
 </body>
 </html>

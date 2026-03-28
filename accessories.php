@@ -1,85 +1,71 @@
-<?php include "db.php"; ?>
+<?php
+session_start();
+include __DIR__ . "/db.php";
+include __DIR__ . "/auth.php";
+
+$sub     = clean($_GET['sub'] ?? '', 100);
+$wishlist = $_SESSION['wishlist'] ?? [];
+
+$filter = ['category' => 'accessories'];
+
+if ($sub) {
+    // Match subcategory exactly — values in DB: jewellery, watch, bag, ring, necklace, earring, bracelet, handbag
+    $filter['subcategory'] = ['$regex' => preg_quote($sub, '/'), '$options' => 'i'];
+}
+
+$cursor = $products->find($filter);
+?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Accessories | La Moda</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<?php include __DIR__ . "/navbar.php"; ?>
 
-<nav class="navbar">
-<h2 class="logo">La Moda</h2>
-<ul>
-<li><a href="index.php">Home</a></li>
-<li><a href="traditional.php">Traditional</a></li>
-<li><a href="dresses.php">Dresses</a></li>
-<li><a href="casual.php">Casual</a></li>
-<li><a href="accessories.php">Accessories</a></li>
-</ul>
-</nav>
+<div class="category-layout">
+    <aside class="side-menu">
 
-<div style="display:flex">
+        <h3>All</h3>
+        <a href="accessories.php" class="<?= $sub === '' ? 'active' : '' ?>">
+            All Accessories
+        </a>
 
-<div class="side-menu" style="width:230px;padding:20px;">
-<h3>Jewellery</h3>
-<a href="?sub=jewellery&subsub=jewellery set">Jewellery Set</a>
-<a href="?sub=jewellery&subsub=rings">Rings</a>
-<a href="?sub=jewellery&subsub=chain">Chain</a>
-<a href="?sub=jewellery&subsub=earrings">Earrings</a>
-<a href="?sub=jewellery&subsub=waist chain">Waist Chain</a>
+        <h3>Jewellery</h3>
+        <a href="?sub=set" class="<?= $sub === 'set' ? 'active' : '' ?>">Jewellery Set</a>
+        <a href="?sub=ring"      class="<?= $sub === 'ring'      ? 'active' : '' ?>">Rings</a>
+        <a href="?sub=necklace"  class="<?= $sub === 'necklace'  ? 'active' : '' ?>">Necklace</a>
+        <a href="?sub=ear"   class="<?= $sub === 'ear'   ? 'active' : '' ?>">Earrings</a>
+        <a href="?sub=bracelet"  class="<?= $sub === 'bracelet'  ? 'active' : '' ?>">Bracelet</a>
+        <a href="?sub=waist"  class="<?= $sub === 'waist'  ? 'active' : '' ?>">Waist Chain</a>
 
-<h3>Watch</h3>
-<a href="?sub=watch&subsub=analog watch">Analog Watch</a>
-<a href="?sub=watch&subsub=smart watch">Smart Watch</a>
+        <h3>Watch</h3>
+        <a href="?sub=analog" class="<?= $sub === 'watch' ? 'active' : '' ?>">Analog Watches</a>
+        <a href="?sub=digital" class="<?= $sub === 'watch' ? 'active' : '' ?>">Digital Watches</a>
 
-<h3>Bag</h3>
-<a href="?sub=bag&subsub=shoulder bag">Shoulder Bag</a>
-<a href="?sub=bag&subsub=sling bag">Sling Bag</a>
-<a href="?sub=bag&subsub=handbag">Handbag</a>
+        <h3>Bag</h3>
+        <a href="?sub=back"     class="<?= $sub === 'back'     ? 'active' : '' ?>">Backpack</a>
+        <a href="?sub=handbag" class="<?= $sub === 'handbag' ? 'active' : '' ?>">Handbag</a>
+
+    </aside>
+
+    <div class="product-grid">
+        <?php
+        $count = 0;
+        foreach ($cursor as $row) {
+            $count++;
+            include __DIR__ . "/_product_card.php";
+        }
+        if ($count === 0) {
+            echo '<p style="padding:30px;color:#999;font-size:15px;">No products found.</p>';
+        }
+        ?>
+    </div>
 </div>
 
-<div class="product-container">
-
-<?php
-$sub=$_GET['sub'] ?? '';
-$subsub=$_GET['subsub'] ?? '';
-
-$sql=($sub && $subsub)
-? "SELECT * FROM products WHERE category='accessories' AND subcategory='$sub' AND sub_subcategory='$subsub'"
-: "SELECT * FROM products WHERE category='accessories'";
-
-$res=mysqli_query($conn,$sql);
-
-while($row=mysqli_fetch_assoc($res)){
-$discount=round((($row['old_price']-$row['new_price'])/$row['old_price'])*100);
-?>
-
-<div class="card">
-
-<?php if($row['flash_sale']=="yes"){ ?>
-<div class="sale-tag">SALE</div>
-<?php } ?>
-
-<a href="<?= $row['link'] ?>" target="_blank">
-
-<div class="img-box">
-<img src="images/<?= $row['image'] ?>">
-</div>
-
-<h3><?= $row['name'] ?></h3>
-<p><?= $row['description'] ?></p>
-
-<p class="old">₹<?= $row['old_price'] ?></p>
-<p class="new">₹<?= $row['new_price'] ?></p>
-<p style="color:brown"><?= $discount ?>% OFF</p>
-
-</a>
-</div>
-
-<?php } ?>
-
-</div>
-</div>
+<footer><h1>☆ La Moda ☆</h1><p>Wear the Moment</p></footer>
 </body>
 </html>
