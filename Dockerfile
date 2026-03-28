@@ -1,9 +1,12 @@
 FROM php:8.2-cli
 
-# Install required extensions
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    unzip git curl \
-    && docker-php-ext-install pdo pdo_mysql
+    unzip git curl libssl-dev pkg-config
+
+# Install MongoDB extension
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
