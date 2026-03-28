@@ -18,7 +18,7 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies
-RUN composer install
+RUN composer install --ignore-platform-req=ext-mongodb
 
 # Expose port
 EXPOSE 10000
