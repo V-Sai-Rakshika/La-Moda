@@ -1,23 +1,29 @@
 FROM php:8.2-cli
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    unzip git curl libssl-dev pkg-config
+    libssl-dev \
+    libcurl4-openssl-dev \
+    pkg-config \
+    git \
+    unzip \
+    zip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install latest MongoDB extension
-RUN pecl install mongodb \
+RUN pecl install mongodb-1.17.2 \
     && docker-php-ext-enable mongodb
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN php -m | grep mongodb
+
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-COPY . .
+COPY composer.json composer.lock* ./
 
-# Install dependencies (ignore platform mismatch during build)
-RUN composer install --ignore-platform-reqs
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+
+COPY . .
 
 EXPOSE 10000
 
-CMD ["php", "-S", "0.0.0.0:10000"]
+CMD ["php", "-S", "0.0.0.0:10000", "-t", "/app"]

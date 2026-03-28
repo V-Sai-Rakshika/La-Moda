@@ -1,5 +1,19 @@
 {
+    "name": "lamoda/fashion-store",
+    "description": "La Moda - Fashion E-Commerce Store",
+    "type": "project",
     "require": {
-        "mongodb/mongodb": "1.16"
+        "php": ">=8.1",
+        "mongodb/mongodb": "^1.17"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "LaModa\\": "src/"
+        }
     }
 }

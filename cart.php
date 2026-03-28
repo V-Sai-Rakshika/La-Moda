@@ -42,7 +42,7 @@ $couponCode     = '';
 <link rel="stylesheet" href="styles.css">
 <style>
 /* ══ OVERLAY SYSTEM ══ */
-.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:8000;overflow-y:auto;padding:30px 16px 60px;}
+.ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.52);z-index:8000;overflow-y:auto;padding:30px 16px 60px;}
 .ov.open{display:block;}
 .ob{background:#fff;width:520px;max-width:100%;margin:0 auto;border-radius:14px;padding:26px 24px 22px;position:relative;}
 .ob h2{font-size:19px;font-family:var(--font-display,serif);margin-bottom:3px;}
@@ -142,7 +142,7 @@ $couponCode     = '';
 .sbtn-outline{width:100%;padding:11px;border:1.5px solid #8B2500;color:#8B2500;background:#fff;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
 
 /* ══ SUCCESS ══ */
-#successOv{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;}
+#successOv{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;}
 #successOv.open{display:flex;}
 #successBox{background:#fff;border-radius:16px;padding:36px 28px;text-align:center;width:320px;max-width:95vw;}
 .coupon-reveal{margin:14px 0;padding:14px;background:#fff5f2;border:1.5px dashed #8B2500;border-radius:10px;}
@@ -413,20 +413,30 @@ $couponCode     = '';
     </div>
   </div>
 
-  <!-- UPI -->
+  <!-- UPI via Cashfree -->
   <div class="ppanel" id="pm_upi">
-    <div class="upi-row">
-      <input type="text" id="upiInput" placeholder="yourname@okaxis  or  9876543210@upi" maxlength="60">
-      <button type="button" id="upiVerifyBtn">Verify</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <img src="https://cdn.cashfree.com/cashfree/cf-logo.png" alt="Cashfree"
+           style="height:22px;" onerror="this.style.display='none'">
+      <span style="font-size:12px;color:#888;">Secure UPI via Cashfree Payment Gateway</span>
     </div>
-    <p style="font-size:11px;color:#aaa;">Supported: @okaxis @ybl @paytm @upi @oksbi @okicici @ibl</p>
-    <p id="upiMsg" class="umsg"></p>
-    <div id="upiQrBox" style="display:none;text-align:center;margin-top:10px;padding:14px;background:#f9f9f9;border-radius:8px;">
-      <img id="upiQrImg" src="" alt="UPI QR"
-           style="width:140px;height:140px;border-radius:8px;margin:0 auto 8px;">
-      <div style="font-size:16px;font-weight:700;color:#8B2500;">₹<span id="upiAmtLabel"><?= $total ?></span></div>
-      <p style="font-size:11px;color:#888;margin-top:4px;">Scan with PhonePe, GPay, Paytm or BHIM</p>
+    <p style="font-size:13px;color:#555;margin-bottom:8px;">
+      Pay using any UPI app — PhonePe, GPay, Paytm, BHIM, or your UPI ID.
+    </p>
+    <div id="upiCashfreeBox" style="text-align:center;padding:14px;background:#f9f9f9;border-radius:8px;">
+      <div id="upiLoadBtn">
+        <button type="button" id="initCashfreeBtn"
+          style="padding:10px 24px;background:#8B2500;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+          Pay ₹<span id="cfAmtLabel"><?= $total ?></span> via UPI
+        </button>
+        <p style="font-size:11px;color:#aaa;margin-top:6px;">You'll be redirected to Cashfree's secure payment page</p>
+      </div>
+      <div id="upiLoadingBox" style="display:none;padding:16px;">
+        <div style="font-size:13px;color:#888;">Opening payment page…</div>
+      </div>
+      <p id="cfUpiMsg" style="font-size:12px;margin-top:8px;"></p>
     </div>
+    <p style="font-size:11px;color:#aaa;margin-top:8px;">🔒 Secured by Cashfree Payments — PCI DSS Level 1 certified</p>
   </div>
 
   <!-- Card -->
@@ -568,7 +578,15 @@ function closeOv(id) {
 
 /* ── Checkout button ── */
 document.getElementById('checkoutBtn')?.addEventListener('click', () => {
-  if (!isLoggedIn) { toast('Please log in to checkout','error'); return; }
+  if (!isLoggedIn) {
+    // Show login prompt clearly
+    if (typeof openLogin === 'function') {
+      openLogin();
+    } else {
+      toast('Please log in to checkout. Click Login in the navbar.', 'error');
+    }
+    return;
+  }
   openOv('ovAddr');
 });
 
@@ -589,7 +607,7 @@ function recalc() {
   const dd = document.getElementById('delDisplay');   if(dd) dd.textContent = gDelivery;
   const td = document.getElementById('totalDisplay'); if(td) td.textContent = gTotal;
   const pa = document.getElementById('payAmtSpan');   if(pa) pa.textContent = gTotal;
-  const ua = document.getElementById('upiAmtLabel');  if(ua) ua.textContent = gTotal;
+  const ua = document.getElementById('cfAmtLabel');   if(ua) ua.textContent = gTotal;
 }
 
 /* ── Qty controls ── */
@@ -758,20 +776,73 @@ document.querySelectorAll('.bank-opt').forEach(b=>{
   });
 });
 
-/* ── UPI verify ── */
-document.getElementById('upiVerifyBtn')?.addEventListener('click', function(){
-  const val=document.getElementById('upiInput').value.trim();
-  const msg=document.getElementById('upiMsg');
-  if(!val){msg.className='umsg fail';msg.textContent='❌ Enter your UPI ID';return;}
-  if(!/^[a-zA-Z0-9._+\-]+@[a-zA-Z0-9]+$/.test(val)){msg.className='umsg fail';msg.textContent='❌ Invalid format. Example: name@okaxis';return;}
-  this.disabled=true; this.textContent='Verifying…';
-  setTimeout(()=>{
-    msg.className='umsg ok'; msg.textContent='✅ UPI verified! Scan QR or click Place Order.';
-    this.textContent='✓ Verified';
-    const qb=document.getElementById('upiQrBox'); if(qb) qb.style.display='block';
-    const qi=document.getElementById('upiQrImg');
-    if(qi) qi.src=`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=upi://pay?pa=${encodeURIComponent(val)}%26pn=LaModa%26am=${gTotal}%26cu=INR`;
-  }, 900);
+/* ── Cashfree UPI initiation ── */
+document.getElementById('initCashfreeBtn')?.addEventListener('click', function() {
+  // Need address filled first
+  if (addrMode === 'new' && !validateAddr()) {
+    toast('Please fill delivery address first', 'error');
+    // Close payment overlay, open address
+    closeOv('ovPay'); openOv('ovAddr');
+    return;
+  }
+
+  this.disabled = true;
+  document.getElementById('upiLoadBtn').style.display     = 'none';
+  document.getElementById('upiLoadingBox').style.display  = 'block';
+  document.getElementById('cfUpiMsg').textContent         = '';
+
+  // Gather name/mobile/email from address form
+  const name   = document.getElementById('f_name')?.value   || '';
+  const mobile = document.getElementById('f_mobile')?.value || '';
+  const email  = document.getElementById('f_email')?.value  || '';
+
+  const fd = new FormData();
+  fd.append('csrf_token', CSRF);
+  fd.append('amount',   gTotal);
+  fd.append('name',     name);
+  fd.append('mobile',   mobile);
+  fd.append('email',    email);
+
+  fetch('cashfree_payment.php', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+      if (res.error) {
+        document.getElementById('cfUpiMsg').style.color    = '#dc2626';
+        document.getElementById('cfUpiMsg').textContent    = '❌ ' + res.error;
+        document.getElementById('upiLoadingBox').style.display = 'none';
+        document.getElementById('upiLoadBtn').style.display    = 'block';
+        document.getElementById('initCashfreeBtn').disabled    = false;
+        return;
+      }
+
+      // Load Cashfree JS SDK and open checkout
+      const script  = document.createElement('script');
+      script.src    = res.test_mode
+        ? 'https://sdk.cashfree.com/js/v3/cashfree.js'   // sandbox
+        : 'https://sdk.cashfree.com/js/v3/cashfree.js';  // same SDK, mode set by session ID
+      script.onload = () => {
+        const cashfree = Cashfree({ mode: res.test_mode ? 'sandbox' : 'production' });
+        cashfree.checkout({
+          paymentSessionId: res.payment_session_id,
+          redirectTarget:   '_self',   // redirect in same tab
+        });
+      };
+      script.onerror = () => {
+        document.getElementById('cfUpiMsg').style.color    = '#dc2626';
+        document.getElementById('cfUpiMsg').textContent    = '❌ Could not load payment SDK';
+        document.getElementById('upiLoadingBox').style.display = 'none';
+        document.getElementById('upiLoadBtn').style.display    = 'block';
+        document.getElementById('initCashfreeBtn').disabled    = false;
+      };
+      document.head.appendChild(script);
+    })
+    .catch(err => {
+      document.getElementById('cfUpiMsg').style.color    = '#dc2626';
+      document.getElementById('cfUpiMsg').textContent    = '❌ Network error: ' + err.message;
+      document.getElementById('upiLoadingBox').style.display = 'none';
+      document.getElementById('upiLoadBtn').style.display    = 'block';
+      document.getElementById('initCashfreeBtn').disabled    = false;
+    });
 });
 
 /* ── Card format ── */
