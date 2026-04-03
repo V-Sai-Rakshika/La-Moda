@@ -27,7 +27,7 @@ La Moda is a full-stack fashion aggregation platform that brings together produc
 
 ### 👕 Product Details
 
-<img width="1600" height="900" src="https://github.com/user-attachments/assets/053a16f5-ed36-41f7-9272-42b20d39e976" />
+<img width="1600" height="900"  src="https://github.com/user-attachments/assets/3c9bc4e8-e3b6-45a0-9cfa-0cd1115ba29f" />
 
 ### 🛒 Shopping Cart
 
