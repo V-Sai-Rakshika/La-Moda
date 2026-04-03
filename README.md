@@ -5,8 +5,9 @@
 La Moda is a full-stack fashion aggregation platform that brings together products from multiple e-commerce websites like Amazon, Myntra, Flipkart, and more — with advanced shopping features and a powerful admin analytics dashboard.
 
 
-## 📸 Images
-![Home Page](images/home.png)
+## 📸 Screenshots
+<img width="1600" height="900" alt="Screenshot (38)" src="https://github.com/user-attachments/assets/cc718acd-7e93-4437-9456-750da75ef7e3" />
+
 
 
 
