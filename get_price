@@ -1,0 +1,21 @@
+<?php
+// get_price.php — returns product price for Buy Now modal
+ob_start();
+session_start();
+include __DIR__ . "/db.php";
+include __DIR__ . "/auth.php";
+
+function send(array $d): void {
+    ob_end_clean();
+    header('Content-Type: application/json');
+    echo json_encode($d);
+    exit();
+}
+
+$name = clean($_GET['name'] ?? '', 200);
+if (!$name) send(['error' => 'No name']);
+
+$product = $products->findOne(['name' => $name], ['projection' => ['new_price' => 1, 'old_price' => 1]]);
+if (!$product) send(['error' => 'Not found']);
+
+send(['price' => (int)($product['new_price'] ?? 0)]);
