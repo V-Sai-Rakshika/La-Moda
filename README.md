@@ -5,11 +5,6 @@
 🌐 **Live Demo:** https://la-moda.onrender.com
 
 ---
-## Overview
-
-(your description)
-
----
 
 ## 📋 Table of Contents
 
