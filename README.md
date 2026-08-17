@@ -178,13 +178,3 @@ It goes beyond a normal shopping website by combining **modern UI, real-world e-
 * Real-time UI updates without refresh  
 * Modular admin analytics dashboard  
 * Persistent cart and wishlist system  
-
----
-
-## Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/yourusername/la-moda.git
-cd la-moda
